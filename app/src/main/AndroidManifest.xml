@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.SEND_SMS"/>
     <uses-permission android:name="android.permission.CALL_PHONE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.PREVENT_POWER_KEY"/>
     <uses-feature android:name="android.hardware.location.gps" android:required="true"/>
@@ -26,6 +26,12 @@
         </activity>
 
         <service android:name=".LocationService"
-            android:foregroundServiceType="dataSync"/>
+            android:foregroundServiceType="location"/>
+
+        <receiver android:name=".SendSms">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
     </application>
 </manifest>

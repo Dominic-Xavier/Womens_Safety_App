@@ -5,38 +5,34 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.telephony.PhoneNumberUtils;
-import android.view.MotionEvent;
+import android.view.KeyEvent;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-
-import com.google.i18n.phonenumbers.NumberParseException;
-import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.google.i18n.phonenumbers.Phonenumber;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
     Button save;
+    Intent intent;
     EditText emergency_Contact, message1, message2, message3;
     String emergencyContact, messageNO1, messageNO2, messageNO3;
     private static final int REQ_CODE = 0;
+    int i=0;
+
+    Sqlite sqlite = new Sqlite(MainActivity.this);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         emergency_Contact = findViewById(R.id.CallNumber);
         message1 = findViewById(R.id.contact1);
         message2 = findViewById(R.id.contact2);
@@ -50,61 +46,63 @@ public class MainActivity extends AppCompatActivity {
                 messageNO3 = message3.getText().toString();
 
                 if(isValidPhoeNumber(emergencyContact.trim()) && isValidPhoeNumber(messageNO1.trim()) && isValidPhoeNumber(messageNO2.trim()) && isValidPhoeNumber(messageNO3.trim())){
-                    Toast.makeText(this, "All Phone number is valid",Toast.LENGTH_SHORT).show();
                     if (!is_SamePhone_Number_Repeating(emergencyContact.trim(), messageNO1.trim(), messageNO2.trim(), messageNO3.trim())){
+                        sqlite.saveData(emergencyContact, messageNO1, messageNO2, messageNO3);
                         if(ContextCompat.checkSelfPermission(MainActivity.this,
                                 Manifest.permission.ACCESS_FINE_LOCATION) +
                             ContextCompat.checkSelfPermission(MainActivity.this,
-                                    Manifest.permission.ACCESS_COARSE_LOCATION) +
-                            ContextCompat.checkSelfPermission(MainActivity.this,
                                     Manifest.permission.CALL_PHONE)+
                             ContextCompat.checkSelfPermission(MainActivity.this,
-                                    Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED){
+                                    Manifest.permission.SEND_SMS)+
+                            ContextCompat.checkSelfPermission(MainActivity.this,
+                                    Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED){
 
                             //When Permission Not granted
                             if(ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this ,
                                     Manifest.permission.ACCESS_FINE_LOCATION) ||
                                 ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                                        Manifest.permission.ACCESS_COARSE_LOCATION) ||
-                                ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
                                         Manifest.permission.CALL_PHONE) ||
                                 ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
-                                        Manifest.permission.SEND_SMS)){
+                                        Manifest.permission.SEND_SMS) ||
+                                ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this,
+                                        Manifest.permission.ACCESS_BACKGROUND_LOCATION)){
                                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
                                 builder.setTitle("Grant Permissions")
-                                        .setMessage("Please Grant permissions for all the thinngs")
+                                        .setMessage("Please Grant all permissions")
                                         .setPositiveButton("Ok", (DialogInterface dialog, int which) -> {
                                                 ActivityCompat.requestPermissions(MainActivity.this,
                                                         new String[]{
                                                                 Manifest.permission.ACCESS_FINE_LOCATION,
-                                                                Manifest.permission.ACCESS_COARSE_LOCATION,
                                                                 Manifest.permission.CALL_PHONE,
-                                                                Manifest.permission.SEND_SMS
+                                                                Manifest.permission.SEND_SMS,
+                                                                Manifest.permission.ACCESS_BACKGROUND_LOCATION
                                                         }, REQ_CODE);
                                         })
                                         .setNegativeButton("Cancel", null);
                                 AlertDialog alertDialog = builder.create();
                                 alertDialog.show();
                             }
+                            else {
+                                ActivityCompat.requestPermissions(MainActivity.this,
+                                        new String[]{
+                                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                                Manifest.permission.CALL_PHONE,
+                                                Manifest.permission.SEND_SMS,
+                                                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                                        }, REQ_CODE);
+                            }
                         }
                         else {
-                            //When permission is already granted
-                            Toast.makeText(this,"Permission already Granted", Toast.LENGTH_SHORT).show();
-                            Uri call = Uri.parse("tel:" + emergencyContact);
-                            Intent surf = new Intent(Intent.ACTION_CALL, call);
-                            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-                                Toast.makeText(this, "Call Phone permission is required...!",Toast.LENGTH_SHORT).show();
-                                return;
-                            }
-                            startActivity(surf);
-                            ContextCompat.startForegroundService(MainActivity.this, new Intent(this, LocationService.class));
+                            /*intent = new Intent(this, LocationService.class);
+                            intent.putExtra("callNumber", emergencyContact);
+                            ContextCompat.startForegroundService(MainActivity.this, intent);*/
                         }
                     }
                     else
                         Toast.makeText(this, "Repeating phone numbers are not allowed",Toast.LENGTH_SHORT).show();
                 }
                 else
-                    Toast.makeText(this, "Phone number is invalid",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Check all the Phone Numbers",Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -117,6 +115,10 @@ public class MainActivity extends AppCompatActivity {
                 +grantResults[2]
                 +grantResults[3] == PackageManager.PERMISSION_GRANTED)){
                     //Permission are granted
+                    LocationService.permissionGranted = true;
+                    intent = new Intent(this, LocationService.class);
+                    intent.putExtra("callNumber", emergencyContact);
+                    //ContextCompat.startForegroundService(MainActivity.this, intent);
                     Toast.makeText(this, "Permissions are granted", Toast.LENGTH_SHORT).show();
             }
             else
@@ -150,7 +152,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean dispatchGenericMotionEvent(MotionEvent ev) {
-        return super.dispatchGenericMotionEvent(ev);
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (!LocationService.permissionGranted){
+            if(keyCode == KeyEvent.KEYCODE_VOLUME_DOWN){
+                i++;
+                if(i==3){
+                    ContextCompat.startForegroundService(this, intent);
+                    Toast.makeText(this,"Service Started",Toast.LENGTH_SHORT).show();
+                    i=0;
+                    return true;
+                }
+            }
+        }
+        else
+            Toast.makeText(this, "Service already started..!", Toast.LENGTH_SHORT).show();
+        return super.onKeyDown(keyCode, event);
     }
 }
