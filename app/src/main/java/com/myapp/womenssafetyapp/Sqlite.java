@@ -68,7 +68,7 @@ public class Sqlite extends SQLiteOpenHelper {
             Toast.makeText(context, "Values inserted into database...!", Toast.LENGTH_SHORT).show();
     }
 
-    List<String> fecthData(){
+    public List<String> fecthData(){
         db = this.getReadableDatabase();
         cursor = db.query("ContactDetails", new String[]{"Phone_Numbers"}, null, null, null, null, null);
         while (cursor.moveToNext()){
@@ -79,7 +79,6 @@ public class Sqlite extends SQLiteOpenHelper {
 
     void updateData(){
         db = this.getWritableDatabase();
-
     }
 
     int getRowCount(){

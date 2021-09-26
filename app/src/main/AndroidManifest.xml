@@ -26,6 +26,7 @@
         </activity>
 
         <service android:name=".LocationService"
+            android:process=":LocationService"
             android:foregroundServiceType="location"/>
 
         <receiver android:name=".SendSms">

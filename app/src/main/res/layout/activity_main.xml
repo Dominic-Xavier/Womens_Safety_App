@@ -132,4 +132,12 @@
         app:layout_constraintTop_toBottomOf="@+id/contact2"
         tools:ignore="MissingConstraints" />
 
+    <Switch
+        android:id="@+id/toggle_buttons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Servie running"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
