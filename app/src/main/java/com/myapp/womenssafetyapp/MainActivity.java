@@ -17,12 +17,9 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -43,7 +40,6 @@ import com.google.android.gms.tasks.Task;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQ_CODE = 0;
     int i = 0;
     private static int counter = 0;
-    private static List<String> phoneNumbers;
     private SensorManager sm;
     private float acelVal, acelLast, shake;
     private final static String log = "Main Activity";
@@ -307,6 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
                         case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                             //Device does not have location
+                            Toast.makeText(MainActivity.this, "Sorry....!  Your device has no location",Toast.LENGTH_SHORT).show();
                             break;
                     }
                 }
